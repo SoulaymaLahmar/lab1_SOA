@@ -1,16 +1,9 @@
 # BiblioTech - Partie 3 : API REST
 
 ## Lancement
-(a completer : docker compose up --build)
+docker compose up --build
 
 ## Documentation OpenAPI
-Une fois l'API lancée, les URLs suivantes sont disponibles :
-
-Documentation Swagger UI : http://localhost:8000/docs
-
-Documentation ReDoc : http://localhost:8000/redoc
-
-Schéma OpenAPI au format JSON : http://localhost:8000/openapi.json
 
 Liste des livres : http://localhost:8000/books
 
