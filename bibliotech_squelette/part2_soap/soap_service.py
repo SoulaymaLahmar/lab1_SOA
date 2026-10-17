@@ -1,8 +1,8 @@
-"""Service SOAP avec Spyne - SQUELETTE.
-Lancer : python soap_service.py
-WSDL   : http://localhost:8000/?wsdl
-"""
+
+"""Service SOAP avec Spyne - BiblioTech."""
+
 from wsgiref.simple_server import make_server
+
 from spyne import Application, rpc, ServiceBase, Integer, Unicode, Float, Fault
 from spyne.model.complex import ComplexModel
 from spyne.protocol.soap import Soap11
@@ -13,34 +13,90 @@ import db
 TNS = "http://bibliotech.example/soap"
 
 
-# TODO : classe BookModel(ComplexModel) avec id, title, author, available_copies, rental_price
-#        (n'oubliez pas __namespace__ = TNS)
+class BookModel(ComplexModel):
+    __namespace__ = TNS
+
+    id = Integer
+    title = Unicode
+    author = Unicode
+    available_copies = Integer
+    rental_price = Float
 
 
 def guard(func, *args):
-    """TODO : appeler func(*args) ; transformer ValueError et LookupError en Fault SOAP."""
-    raise NotImplementedError
+    """Convertir les erreurs métier en erreurs SOAP."""
+    try:
+        return func(*args)
+    except ValueError as exc:
+        raise Fault(
+            faultcode="Client.Validation",
+            faultstring=str(exc),
+        )
+    except LookupError as exc:
+        raise Fault(
+            faultcode="Client.NotFound",
+            faultstring=str(exc),
+        )
+
+
+def to_book_model(data):
+    return BookModel(
+        id=data["id"],
+        title=data["title"],
+        author=data["author"],
+        available_copies=data["available_copies"],
+        rental_price=data["rental_price"],
+    )
 
 
 class BookService(ServiceBase):
-    # TODO : decorer chaque methode avec @rpc(types..., _returns=...)
-    # Les noms des parametres doivent etre : id, title, author, available_copies, rental_price
 
+    @rpc(Integer, Unicode, Unicode, Integer, Float, _returns=BookModel)
     def CreateBook(ctx, id, title, author, available_copies, rental_price):
-        pass
+        result = guard(
+            db.create_book,
+            id, title, author, available_copies, rental_price,
+        )
+        return to_book_model(result)
 
+    @rpc(Integer, _returns=BookModel)
     def GetBook(ctx, id):
-        pass
+        result = guard(db.get_book, id)
+        return to_book_model(result)
 
+    @rpc(Integer, Unicode, Unicode, Integer, Float, _returns=BookModel)
     def UpdateBook(ctx, id, title, author, available_copies, rental_price):
-        pass
+        result = guard(
+            db.update_book,
+            id, title, author, available_copies, rental_price,
+        )
+        return to_book_model(result)
 
+    @rpc(Integer, _returns=Unicode)
     def DeleteBook(ctx, id):
-        pass
+        return guard(db.delete_book, id)
 
 
-# TODO : application = Application([BookService], tns=TNS, in_protocol=..., out_protocol=...)
+application = Application(
+    [BookService],
+    tns=TNS,
+    in_protocol=Soap11(validator="lxml"),
+    out_protocol=Soap11(),
+)
+
+wsgi_application = WsgiApplication(application)
+
 
 if __name__ == "__main__":
-    # TODO : db.init_db(), creer le serveur WSGI sur le port 8000, serve_forever()
-    pass
+    db.init_db()
+
+    server = make_server("127.0.0.1", 8000, wsgi_application)
+
+    print("Service SOAP démarré sur http://localhost:8000")
+    print("WSDL disponible sur http://localhost:8000/?wsdl")
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nArrêt du service SOAP.")
+        server.server_close()

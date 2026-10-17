@@ -1,16 +1,18 @@
 # BiblioTech - Partie 1 : Version monolithique
 
+![alt text](image.png)
+
 ## Lancement
-# 1. Se placer dans le dossier du projet
+1. Se placer dans le dossier du projet
 cd ~/Desktop/lab1/tp/bibliotech_squelette
 
-# 2. Démarrer la base de données PostgreSQL
+2. Démarrer la base de données PostgreSQL
 sudo docker compose up -d
 
-# 3. Activer l'environnement virtuel Python
+3. Activer l'environnement virtuel Python
 source ~/Desktop/lab1/tp/.venv/bin/activate
 
-# 4. Lancer l'application BiblioTech
+4. Lancer l'application BiblioTech
 python part1_monolith/app.py
 
 ## Q6 - Quelles sont les limites de cette approche monolithique ?
