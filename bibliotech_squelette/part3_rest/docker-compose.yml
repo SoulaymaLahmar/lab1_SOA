@@ -1,23 +1,16 @@
-version: '3.8'
 services:
-  db:
-    image: postgres
-    container_name: library_db
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: library_api
     environment:
-      POSTGRES_USER: library
-      POSTGRES_PASSWORD: library
-      POSTGRES_DB: library
+      DATABASE_URL: postgresql+psycopg2://library:library@library_db:5432/library
     ports:
-      - "5432:5432"
-    volumes:
-      - ~/data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U library"]
-      interval: 5s
-      retries: 5
+      - "8000:8000"
+    networks:
+      - bibliotech_squelette_default
 
-  # TODO : service "api"
-  #  - build depuis le Dockerfile
-  #  - variable DATABASE_URL (attention : l'hote de la base n'est pas localhost)
-  #  - port 8000
-  #  - depends_on : attendre que db soit "healthy"
+networks:
+  bibliotech_squelette_default:
+    external: true
